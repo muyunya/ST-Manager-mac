@@ -339,6 +339,9 @@ python app.py
 
 默认访问地址是 `http://127.0.0.1:5000`。首次启动会生成 `config.json` 使用的运行目录和 `data/system/db/cards_metadata.db`。配置文件与运行数据不应提交到公开仓库。
 
+macOS 上想直接双击运行，可以用 `bash scripts/build-macos-dmg.sh` 打成 `.app` / `.dmg`，
+目录约定、程序坞集成与 Gatekeeper 说明见 [MACOS.md](MACOS.md)。
+
 可以通过命令行覆盖监听参数：
 
 ```bash
