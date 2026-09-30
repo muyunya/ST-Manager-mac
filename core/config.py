@@ -133,7 +133,8 @@ DEFAULT_CONFIG = {
     "index_auto_bootstrap": True,
 
     # 允许访问的绝对资源目录白名单（仅影响资源文件列表接口）
-    # 例: ["D:/SillyTavern/assets", "E:/resources"]
+    # 例（macOS）: ["/Users/you/SillyTavern/assets", "/Volumes/Data/resources"]
+    # 例（Windows）: ["D:/SillyTavern/assets", "E:/resources"]
     "allowed_abs_resource_roots": [],
 
     # 世界书详情预览优化
@@ -356,8 +357,28 @@ def _ensure_dir(path: str) -> str:
         pass
     return path
 
+def normalize_user_path(value) -> str:
+    """规范化用户手填的路径：去空白与包裹引号、展开 ~、折叠多余分隔符。
+
+    macOS / Linux 用户习惯写 `~/SillyTavern`，Windows 用户常直接粘贴带引号的
+    路径。这两种写法都不该被判成「无效路径」或被当成相对路径拼到数据目录下。
+    """
+    if value is None:
+        return ''
+    try:
+        text = os.fspath(value)
+    except TypeError:
+        return ''
+    if not isinstance(text, str):
+        return ''
+    text = text.strip().strip('"').strip("'").strip()
+    if not text:
+        return ''
+    return os.path.normpath(os.path.expanduser(text))
+
+
 def _resolve_dir(cfg: dict, key: str, default: str) -> str:
-    raw = cfg.get(key, default)
+    raw = normalize_user_path(cfg.get(key, default))
     if os.path.isabs(raw):
         return raw
     return os.path.join(BASE_DIR, raw)

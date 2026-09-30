@@ -28,7 +28,7 @@ ST Manager 使用项目根目录的 `config.json`。文件不存在时，`app.py
 | `resources_dir` | `data/assets/card_assets` | 角色卡资源根目录 |
 | `allowed_abs_resource_roots` | `[]` | 允许资源列表接口访问的额外绝对路径白名单 |
 
-目录可以配置为绝对路径，例如 `D:/SillyTavern/data/default-user/characters`。修改目录后建议先调用设置页的路径安全检查，再保存配置。
+目录可以配置为绝对路径：macOS / Linux 形如 `/Users/<用户名>/SillyTavern/data/default-user/characters`，Windows 形如 `D:/SillyTavern/data/default-user/characters`。修改目录后建议先调用设置页的路径安全检查，再保存配置。
 
 ## 服务与 SillyTavern
 

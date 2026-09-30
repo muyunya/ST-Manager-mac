@@ -12,7 +12,7 @@ import json
 import logging
 from typing import Dict, Any
 from flask import Blueprint, request, jsonify
-from core.config import load_config, BASE_DIR
+from core.config import load_config, BASE_DIR, normalize_user_path
 from core.services.st_client import (
     DEFAULT_ST_USER_HANDLE,
     STClient,
@@ -42,10 +42,8 @@ LAST_VALID_ST_PATH = None
 LAST_VALID_ST_USER_HANDLE = None
 
 def _normalize_input_path(path: str) -> str:
-    if not isinstance(path, str):
-        return ""
-    cleaned = path.strip().strip('"').strip("'")
-    return os.path.normpath(cleaned) if cleaned else ""
+    """规范化接口收到的路径：去引号空白、展开 ~（macOS 用户习惯写 ~/SillyTavern）。"""
+    return normalize_user_path(path)
 
 
 def _build_st_client(st_data_dir: str = '', st_user_handle=None):

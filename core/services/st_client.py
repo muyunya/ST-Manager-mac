@@ -14,8 +14,9 @@ import json
 import logging
 import filecmp
 import shutil
+import platform
 from typing import Optional, Dict, List, Any, Tuple
-from core.config import load_config, BASE_DIR
+from core.config import load_config, BASE_DIR, normalize_user_path
 from core.services.st_auth import STAuthError, build_st_http_client
 from core.utils.filesystem import sanitize_filename
 from core.utils.format_validation import (
@@ -52,20 +53,45 @@ def normalize_st_user_handle(value: Optional[str]) -> str:
         return DEFAULT_ST_USER_HANDLE
     return cleaned
 
-# SillyTavern 常见安装路径候选
-ST_PATH_CANDIDATES = [
-    # Windows 常见路径
+# SillyTavern 常见安装路径候选：按平台给出各自习惯的位置，
+# 避免在 macOS 上还去探测 D:\ 这类不存在的 Windows 路径。
+_WINDOWS_ST_CANDIDATES = [
     r"D:\SillyTavern",
     r"E:\SillyTavern",
     r"C:\SillyTavern",
     r"D:\Programs\SillyTavern",
     r"E:\Programs\SillyTavern",
     r"C:\Users\{user}\SillyTavern",
-    # Linux/macOS 常见路径
-    "/opt/SillyTavern",
+]
+
+# macOS：~/SillyTavern 是最常见的克隆位置；/Applications 对应「把整个仓库
+# 拖进应用程序」的用法；~/st/SillyTavern 对应把 ST 与其它项目并排放在一个
+# 工作目录下的习惯。
+_MACOS_ST_CANDIDATES = [
     "~/SillyTavern",
+    "~/st/SillyTavern",
+    "~/Documents/SillyTavern",
+    "~/Desktop/SillyTavern",
+    "~/Downloads/SillyTavern",
+    "~/Applications/SillyTavern",
+    "/Applications/SillyTavern",
+    "/opt/SillyTavern",
+    "/usr/local/SillyTavern",
+]
+
+_LINUX_ST_CANDIDATES = [
+    "~/SillyTavern",
+    "/opt/SillyTavern",
+    "/usr/local/SillyTavern",
     "/home/{user}/SillyTavern",
 ]
+
+if platform.system() == "Windows":
+    ST_PATH_CANDIDATES = _WINDOWS_ST_CANDIDATES
+elif platform.system() == "Darwin":
+    ST_PATH_CANDIDATES = _MACOS_ST_CANDIDATES
+else:
+    ST_PATH_CANDIDATES = _LINUX_ST_CANDIDATES
 
 # SillyTavern 用户目录内的资源结构。ST 的 data/<user> 是所有资源的边界。
 ST_DATA_STRUCTURE = {
@@ -187,6 +213,7 @@ class STClient:
     
     def _validate_st_path(self, path: str) -> bool:
         """验证路径是否为有效的 SillyTavern 安装目录"""
+        path = normalize_user_path(path)
         if not path or not os.path.exists(path):
             return False
 

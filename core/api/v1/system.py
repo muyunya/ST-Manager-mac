@@ -15,7 +15,7 @@ from flask import Blueprint, request, jsonify
 # === 基础设施 ===
 from core.config import (
     CARDS_FOLDER, DATA_DIR, BASE_DIR, THUMB_FOLDER, TRASH_FOLDER,
-    load_config, save_config, get_cards_folder
+    load_config, save_config, get_cards_folder, normalize_user_path
 )
 from core.context import ctx
 from core.data.ui_store import (
@@ -164,8 +164,10 @@ def _resolve_allowed_roots():
 
     allowed_abs = cfg.get('allowed_abs_resource_roots', []) or []
     for root in allowed_abs:
-        if isinstance(root, str) and os.path.isabs(root):
-            roots.append(root)
+        # 白名单里允许写 ~/...（macOS/Linux 习惯），这里先展开再判断是否绝对路径
+        normalized_root = normalize_user_path(root)
+        if normalized_root and os.path.isabs(normalized_root):
+            roots.append(normalized_root)
 
     # 去重 + 归一化
     dedup = []
@@ -178,6 +180,7 @@ def _resolve_allowed_roots():
     return dedup
 
 def _resolve_safe_path(path: str, relative_to_base: bool = False):
+    path = normalize_user_path(path)
     if not path:
         return None
 
@@ -585,7 +588,7 @@ def api_system_action():
 
 @bp.route('/api/trash/open', methods=['POST'])
 def api_open_trash():
-    """在资源管理器中打开回收站"""
+    """在系统文件管理器中打开回收站（macOS 为访达，Windows 为资源管理器）"""
     try:
         if not os.path.exists(TRASH_FOLDER):
             os.makedirs(TRASH_FOLDER)
