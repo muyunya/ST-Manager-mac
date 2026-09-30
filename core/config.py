@@ -9,8 +9,19 @@ logger = logging.getLogger(__name__)
 # --- 智能判断根目录 (兼容 PyInstaller) ---
 if getattr(sys, 'frozen', False):
     # PyInstaller 打包后的环境
-    BASE_DIR = os.path.dirname(sys.executable)
     INTERNAL_DIR = sys._MEIPASS
+    if sys.platform == 'darwin':
+        # macOS 应用包内的目录可能只读（DMG 直接运行 / App Translocation），
+        # 因此 config.json 与 data/ 固定放在用户可写目录下。
+        BASE_DIR = os.environ.get('ST_MANAGER_HOME') or os.path.join(
+            os.path.expanduser('~'), 'Library', 'Application Support', 'ST-Manager'
+        )
+        try:
+            os.makedirs(BASE_DIR, exist_ok=True)
+        except OSError:
+            pass
+    else:
+        BASE_DIR = os.path.dirname(sys.executable)
 else:
     # 如果是正常的 Python 脚本运行环境
     _current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +30,10 @@ else:
 
 CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 
+# macOS 打包版：按系统约定把可再生的缓存与日志分开存放，
+# 用户数据仍留在 Application Support（Caches 可能被系统清理，不能放用户数据）。
+MAC_BUNDLE = getattr(sys, 'frozen', False) and sys.platform == 'darwin'
+
 # === v2.0 目录结构定义 ===
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 
@@ -26,12 +41,22 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 SYSTEM_DIR = os.path.join(DATA_DIR, 'system')
 DB_FOLDER = os.path.join(SYSTEM_DIR, 'db')
 DEFAULT_DB_PATH = os.path.join(DB_FOLDER, 'cards_metadata.db')
-THUMB_FOLDER = os.path.join(SYSTEM_DIR, 'thumbnails')
 TRASH_FOLDER = os.path.join(SYSTEM_DIR, 'trash')
-TEMP_DIR = os.path.join(DATA_DIR, 'temp')
+
+if MAC_BUNDLE:
+    # ~/Library/Caches/ST-Manager 与 ~/Library/Logs/ST-Manager
+    CACHE_DIR = os.path.join(os.path.expanduser('~'), 'Library', 'Caches', 'ST-Manager')
+    LOG_DIR = os.path.join(os.path.expanduser('~'), 'Library', 'Logs', 'ST-Manager')
+    THUMB_FOLDER = os.path.join(CACHE_DIR, 'thumbnails')
+    TEMP_DIR = os.path.join(CACHE_DIR, 'temp')
+else:
+    CACHE_DIR = SYSTEM_DIR
+    LOG_DIR = BASE_DIR
+    THUMB_FOLDER = os.path.join(SYSTEM_DIR, 'thumbnails')
+    TEMP_DIR = os.path.join(DATA_DIR, 'temp')
 
 # 确保核心系统目录存在
-for d in [DATA_DIR, SYSTEM_DIR, DB_FOLDER, THUMB_FOLDER, TRASH_FOLDER, TEMP_DIR]:
+for d in [DATA_DIR, SYSTEM_DIR, DB_FOLDER, THUMB_FOLDER, TRASH_FOLDER, TEMP_DIR, CACHE_DIR, LOG_DIR]:
     if not os.path.exists(d):
         try: os.makedirs(d)
         except: pass
