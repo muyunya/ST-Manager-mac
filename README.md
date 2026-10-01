@@ -13,6 +13,10 @@
 > - 本分支相对上游的修改（自 2026-09 起）：打包为 macOS `.app` / `.dmg`、程序坞（Dock）集成、
 >   macOS 目录约定（Application Support / Caches / Logs）、目录示例与 SillyTavern 探测路径按平台下发、
 >   `~/` 路径展开与端口自动避让。完整清单见 [MACOS.md](MACOS.md)
+> - **联动**：本分支产出的 `ST Manager Pro.app` 可被配套的 macOS 启动器（ST Console）自动定位并拉起；
+>   启动器还会把 SillyTavern 的安装目录与端口同步进本应用的配置（`st_data_dir` / `st_url`）——
+>   同步优先走本应用的 HTTP 接口，未运行时则原子改写 `config.json` 且保留其余设置键。
+>   **本分支不依赖该启动器，可完全独立使用**
 > - 本分支**与原作者无关**，未经其审核或背书；问题请提到本仓库的 Issues，不要去打扰上游维护者
 > - 若你需要的是原项目，请直接使用上面的上游仓库
 
