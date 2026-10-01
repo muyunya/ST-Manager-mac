@@ -4,6 +4,7 @@ import base64
 import hashlib
 import shutil
 import logging
+import zlib
 from PIL import Image, PngImagePlugin
 from core.consts import SIDECAR_EXTENSIONS
 from core.config import INTERNAL_DIR, load_config
@@ -28,6 +29,58 @@ def _should_deterministic_png():
 CARD_INFO_OK = 'ok'
 CARD_INFO_NOT_A_CARD = 'not_a_card'
 CARD_INFO_UNREADABLE = 'unreadable'
+
+
+def read_png_card_text(filepath):
+    """按 PNG 规范逐块扫描，取出 chara / ccv3 文本块的内容。
+
+    作为 Pillow ``img.info`` 的兜底：APNG（多帧 PNG）下 Pillow 的 info 里只有
+    帧信息（loop / duration / fcTL…），拿不到角色卡数据块，于是这类卡会被误判成
+    「不是卡片」。SillyTavern 自己的解析器是按块读的，所以同样的文件在 ST 里正常、
+    在管理器里却会漏掉。支持 tEXt / zTXt / iTXt 三种文本块。
+    """
+    try:
+        with open(filepath, 'rb') as f:
+            data = f.read()
+    except OSError:
+        return None
+    if data[:8] != b'\x89PNG\r\n\x1a\n':
+        return None
+
+    found = {}
+    offset, total = 8, len(data)
+    while offset + 8 <= total:
+        length = int.from_bytes(data[offset:offset + 4], 'big')
+        chunk_type = data[offset + 4:offset + 8]
+        body = data[offset + 8:offset + 8 + length]
+        offset += 12 + length
+        if chunk_type == b'IEND':
+            break
+        if chunk_type not in (b'tEXt', b'zTXt', b'iTXt'):
+            continue
+        try:
+            keyword, _, rest = body.partition(b'\x00')
+            key = keyword.decode('latin-1').lower()
+            if key not in ('chara', 'ccv3'):
+                continue
+            if chunk_type == b'tEXt':
+                text = rest.decode('latin-1')
+            elif chunk_type == b'zTXt':
+                _, _, compressed = rest.partition(b'\x00')
+                text = zlib.decompress(compressed).decode('latin-1')
+            else:  # iTXt: 压缩标志 + 压缩方法 + 语言标签 + 译名 + 正文
+                is_compressed = rest[:1] == b'\x01'
+                remainder = rest[2:]
+                _, _, remainder = remainder.partition(b'\x00')
+                _, _, text_bytes = remainder.partition(b'\x00')
+                if is_compressed:
+                    text_bytes = zlib.decompress(text_bytes)
+                text = text_bytes.decode('utf-8', errors='ignore')
+        except Exception:
+            continue
+        found[key] = text
+
+    return found.get('chara') or found.get('ccv3')
 
 
 def extract_card_info_with_status(filepath):
@@ -56,6 +109,10 @@ def extract_card_info_with_status(filepath):
 
                 metadata = img.info or {}
                 raw = metadata.get('chara') or metadata.get('ccv3')
+
+                if not raw:
+                    # APNG（多帧 PNG）下 Pillow 只给出帧信息，退回按块扫描
+                    raw = read_png_card_text(filepath)
 
                 if not raw:
                     return None, CARD_INFO_NOT_A_CARD
