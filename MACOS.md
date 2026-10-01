@@ -1,8 +1,9 @@
 # macOS 打包与适配
 
-本仓库是 [Dadihu123/ST-Manager](https://github.com/Dadihu123/ST-Manager) 的个人自用分支，
-额外做了「打包成 macOS 应用（.app / .dmg）」所需的适配。上游代码逻辑未改动，
-差异集中在启动入口、目录约定和打包脚本三处。
+本仓库是 [Dadihu123/ST-Manager](https://github.com/Dadihu123/ST-Manager) 的**第三方 macOS 分支（非官方）**，
+原作者为 Dadihu123 及贡献者，原项目采用 AGPL-3.0。本分支自 **2026-09** 起做了
+「打包成 macOS 应用（.app / .dmg）」所需的适配：上游业务逻辑未改动，差异集中在
+启动入口、目录约定、路径示例与打包脚本。
 
 ## 一键打包
 
@@ -63,7 +64,10 @@ git remote add upstream https://github.com/Dadihu123/ST-Manager.git   # 若尚�
 git fetch upstream && git merge upstream/main
 ```
 
-## 许可
+## 许可与署名
 
-上游为 **AGPL-3.0**（见 `LICENSE`）。自用、不对外分发时无额外义务；
-若要把本分支公开或分发构建产物，需要保留许可并在显著位置说明修改内容。
+- 上游 **ST Manager** 的版权归 **Dadihu123 及贡献者**，采用 **AGPL-3.0**（见 [LICENSE](LICENSE)）。
+- 本仓库是其修改版：README 顶部与本文档均显著声明了修改内容与时间（自 2026-09 起），
+  对应 AGPL-3.0 第 5(a) 条的要求。
+- 分发本仓库或由其构建的 `.app` / `.dmg` 时，请保留 `LICENSE` 与上述署名，
+  并按 AGPL-3.0 提供对应源码（即本仓库）。

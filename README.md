@@ -2,6 +2,22 @@
 
 > 面向 SillyTavern 创作者的本地资源工作台：集中管理角色卡、世界书、聊天记录、预设、扩展脚本和视觉主题。
 
+---
+
+> ## ⚠️ 本仓库是第三方 macOS 分支（非官方）
+>
+> 本项目由 **[Dadihu123/ST-Manager](https://github.com/Dadihu123/ST-Manager)** 修改而来。
+> **原作者：Dadihu123 及贡献者**，原项目采用 **AGPL-3.0**（版权与第三方组件声明见 [LICENSE](LICENSE)）。
+>
+> - 上游仓库：<https://github.com/Dadihu123/ST-Manager>
+> - 本分支相对上游的修改（自 2026-09 起）：打包为 macOS `.app` / `.dmg`、程序坞（Dock）集成、
+>   macOS 目录约定（Application Support / Caches / Logs）、目录示例与 SillyTavern 探测路径按平台下发、
+>   `~/` 路径展开与端口自动避让。完整清单见 [MACOS.md](MACOS.md)
+> - 本分支**与原作者无关**，未经其审核或背书；问题请提到本仓库的 Issues，不要去打扰上游维护者
+> - 若你需要的是原项目，请直接使用上面的上游仓库
+
+---
+
 <p align="center">
   <img src="static/images/brand/stm-lockup.png" alt="ST Manager" width="180">
 </p>
