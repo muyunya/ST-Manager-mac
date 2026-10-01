@@ -355,7 +355,12 @@ python app.py
 
 默认访问地址是 `http://127.0.0.1:5000`。首次启动会生成 `config.json` 使用的运行目录和 `data/system/db/cards_metadata.db`。配置文件与运行数据不应提交到公开仓库。
 
-macOS 上想直接双击运行，可以用 `bash scripts/build-macos-dmg.sh` 打成 `.app` / `.dmg`，
+macOS 上想直接双击运行，有两种方式：
+
+- **直接下载**（Apple Silicon）：[Releases](https://github.com/muyunya/ST-Manager-mac/releases) 里的 `ST-Manager-Pro-macos-arm64.dmg`，
+  拖进「应用程序」后右键 → 打开（未签名，首次会被 Gatekeeper 拦截）
+- **自己构建**：`bash scripts/build-macos-dmg.sh`，产物在 `dist/` 下
+
 目录约定、程序坞集成与 Gatekeeper 说明见 [MACOS.md](MACOS.md)。
 
 可以通过命令行覆盖监听参数：
